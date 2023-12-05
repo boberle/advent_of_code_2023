@@ -1,0 +1,8 @@
+[tool.isort]
+profile="black"
+skip_gitignore=true
+
+[tool.black]
+
+[tool.mypy]
+strict=true

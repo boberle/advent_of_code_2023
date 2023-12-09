@@ -10,6 +10,7 @@ import aoc.day5.run
 import aoc.day6.run
 import aoc.day7.run
 import aoc.day8.run
+import aoc.day9.run
 
 app = Typer()
 
@@ -52,6 +53,11 @@ def day7(file: Path = Option(...)) -> None:
 @app.command()
 def day8(file: Path = Option(...)) -> None:
     aoc.day8.run.run(file)
+
+
+@app.command()
+def day9(file: Path = Option(...)) -> None:
+    aoc.day9.run.run(file)
 
 
 if __name__ == "__main__":

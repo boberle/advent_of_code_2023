@@ -1,0 +1,95 @@
+from dataclasses import dataclass
+from pathlib import Path
+
+
+@dataclass
+class Point:
+    x: int
+    y: int
+
+    def __hash__(self) -> int:
+        return hash((self.x, self.y))
+
+
+@dataclass
+class Board:
+    width: int
+    height: int
+    cubes: set[Point]
+    rounds: set[Point]
+
+    def tilt_north(self) -> None:
+        for col in range(self.width):
+            points = list(sorted([p for p in self.cubes | self.rounds if p.x == col], key=lambda p: p.y))
+            if not points:
+                continue
+            cur = 0
+            for i, point in enumerate(points):
+                if point.y == cur:
+                    cur += 1
+                elif cur < point.y and point in self.rounds:
+                    points[i] = Point(point.x, cur)
+                    cur += 1
+                elif point in self.cubes:
+                    cur = point.y + 1
+
+
+    def tilt_south(self) -> None:
+        for col in range(self.width):
+            points = list(reversed(sorted([p for p in self.cubes | self.rounds if p.x == col], key=lambda p: p.y)))
+            if not points:
+                continue
+            #cur = max([self.height-1] + [p.y-1 for p in points if p in self.cubes])
+            cur = self.height - 1
+            for point in points:
+                if point.y == cur:
+                    cur -= 1
+                elif cur > point.y and point in self.rounds:
+                    point.y = cur
+                    cur -= 1
+                elif point in self.cubes:
+                    cur = point.y - 1
+
+    def compute_load(self) -> int:
+        total = 0
+        for round in self.rounds:
+            total += self.height - round.y
+        return total
+
+    def print(self) -> None:
+        output = [["."] * self.width for _ in range(self.height)]
+        for r in self.cubes:
+            output[r.y][r.x] = "#"
+        for r in self.rounds:
+            output[r.y][r.x] = "O"
+        for line in output:
+            print("".join(line))
+
+
+def run(file: Path) -> None:
+    board = parse(file)
+    board.tilt_north()
+    board.tilt_south()
+    board.print()
+    #board.tilt_north()
+    import pprint
+    pprint.pprint(sorted(board.rounds, key=lambda x: x.x))
+    print(board.compute_load())
+
+
+def parse(file: Path) -> Board:
+    width = 0
+    height = 0
+    cubes: set[Point] = set()
+    rounds: set[Point] = set()
+    for line in file.open():
+        line = line.strip()
+        if height == 0:
+            width = len(line)
+        for i, c in enumerate(line):
+            if c == "O":
+                rounds.add(Point(i, height))
+            elif c == "#":
+                cubes.add(Point(i, height))
+        height += 1
+    return Board(width, height, cubes, rounds)
